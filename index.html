@@ -309,13 +309,13 @@ align-items: center;
 /* ── 상세보기 버튼 ── */
 .detail-btn{
   width:100%;padding:20px 0;
-  background:#003478;color:#fff;border:none;
+  background:#5a7ba8;color:#fff;border:none;
   font-size:17px;font-weight:700;
   cursor:pointer;font-family:inherit;
   letter-spacing:-.1px;
   transition:background .15s;
 }
-.detail-btn:hover{background:#002454}
+.detail-btn:hover{background:#4a6b98}
 
 /* ── 캡처방지 바 ── */
 .capture-bar{
@@ -383,8 +383,11 @@ align-items: center;
       <label>증명사진</label>
       <div class="photo-row">
         <div class="form-thumb" id="formThumb" onclick="document.getElementById('fi1').click()">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          사진
+          <img src="" alt="증명사진" style="width:100%;height:100%;object-fit:cover;border-radius:6px;display:none">
+          <div class="photo-placeholder-icon">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+            사진
+          </div>
         </div>
         <label class="upload-label" for="fi1">📷 증명사진 업로드</label>
         <input type="file" id="fi1" accept="image/*" style="display:none" onchange="onPhoto1(this)">
@@ -518,7 +521,15 @@ function onPhoto1(el){
   var r=new FileReader();r.onload=function(e){
     photoData=e.target.result;
     var t=document.getElementById('formThumb');
-    t.innerHTML='<img src="'+photoData+'" style="width:100%;height:100%;object-fit:cover;border-radius:6px">';
+    var img=t.querySelector('img');
+    if(!img){
+      img=document.createElement('img');
+      img.style.cssText='width:100%;height:100%;object-fit:cover;border-radius:6px';
+      t.appendChild(img);
+    }
+    img.src=photoData;
+    img.style.display='block';
+    t.querySelector('.photo-placeholder-icon').style.display='none';
     renderPhoto();
   };r.readAsDataURL(f);
 }
@@ -530,7 +541,6 @@ function transformBirth(bdStr) {
   if(!bdStr) return '—';
   var p = bdStr.split('-');
   if(p.length !== 3) return bdStr;
-  // 주민등록증 모바일 확인서비스 특유의 포맷 (예: 1998.05.12.)
   return p[0] + '.' + p[1] + '.' + p[2] + '.';
 }
 function renderPhoto(){
@@ -553,7 +563,6 @@ function makeCard(){
   document.getElementById('pageForm').classList.add('hidden');
   document.getElementById('pageCard').classList.remove('hidden');
   document.getElementById('expOverlay').classList.remove('on');
-  // 카드 재애니메이션
   var c=document.getElementById('idCard');c.style.animation='none';c.offsetHeight;c.style.animation='slideUp .45s cubic-bezier(.16,1,.3,1) both';
   startTimer();
 }
