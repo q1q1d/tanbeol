@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#003478">
+<meta name="description" content="주민등록증 모바일 확인증을 생성하는 서비스">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="주민등록증 확인">
+<link rel="manifest" href="./manifest.json">
+<link rel="icon" href="./gov_logo_transparent.png">
+<link rel="apple-touch-icon" href="./gov_logo_transparent.png">
+<title>주민등록증모바일확인서비스</title>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+
+body{
+  font-family:'Noto Sans KR',-apple-system,BlinkMacSystemFont,sans-serif;
+  background:#e8eaf2;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ════════════════════════════
+   앱 전체 래퍼 (모바일 최대폭)
+════════════════════════════ */
+.app{
+  max-width:430px;
+  margin:0 auto;
+  min-height:100vh;
+  background:#e8eaf2;
+  position:relative;
+  display:flex;
+  flex-direction:column;
+}
+
+/* ── 입력 폼 페이지 ── */
+.page-form{
+  flex:1;display:flex;flex-direction:column;
+  padding:24px 16px 40px;
+  gap:0;
+}
+.page-form.hidden{display:none}
+
+.form-title{
+  font-size:17px;font-weight:700;color:#1c1c1e;
+  text-align:center;margin-bottom:20px;
+}
+.form-card-wrap{
+  background:#fff;border-radius:16px;
+  box-shadow:0 2px 12px rgba(0,0,0,0.08);
+  padding:20px 16px;
+  display:flex;flex-direction:column;gap:14px;
+}
+.fg label{
+  display:block;font-size:11px;font-weight:700;
+  color:#8e8e93;margin-bottom:5px;letter-spacing:.5px;text-transform:uppercase;
+}
+.fg input{
+  width:100%;padding:12px 14px;
+  background:#f2f2f7;border:1.5px solid transparent;border-radius:10px;
+  font-size:15px;font-family:inherit;color:#1c1c1e;
+  outline:none;transition:border-color .2s,background .2s;
+}
+.fg input:focus{border-color:#003478;background:#fff}
+.fg input[type="date"]{color:#1c1c1e;color-scheme:light}
+.photo-row{display:flex;align-items:center;gap:12px}
+.form-thumb{
+  width:60px;height:76px;border-radius:8px;
+  border:2px dashed #c7c7cc;background:#f2f2f7;
+  display:flex;align-items:center;justify-content:center;
+  flex-direction:column;gap:3px;
+  font-size:10px;font-weight:600;color:#aeaeb2;
+  cursor:pointer;overflow:hidden;flex-shrink:0;
+  transition:border-color .2s;
+}
+.form-thumb:hover{border-color:#003478}
+.form-thumb img{width:100%;height:100%;object-fit:cover}
+.upload-label{
+  flex:1;padding:13px;
+  background:#f2f2f7;border-radius:10px;
+  font-size:14px;font-weight:600;color:#003478;
+  cursor:pointer;text-align:center;
+  border:1.5px dashed #c7c7cc;
+  transition:background .2s,border-color .2s;
+}
+.upload-label:hover{background:#eef0ff;border-color:#003478}
+.btn-make{
+  width:100%;padding:15px;margin-top:4px;
+  background:#003478;color:#fff;border:none;
+  border-radius:12px;font-size:16px;font-weight:700;
+  cursor:pointer;font-family:inherit;
+  box-shadow:0 4px 16px rgba(0,52,120,.35);
+  transition:background .2s;
+}
+.btn-make:active{background:#002454}
+
+/* ════════════════════════════
+   카드 페이지
+════════════════════════════ */
+.page-card{
+  flex:1;display:flex;flex-direction:column;
+}
+.page-card.hidden{display:none}
+
+/* ── 상단 앱바 ── */
+.appbar{
+  background:#e8eaf2;
+  padding:16px 20px 12px;
+  display:flex;align-items:center;justify-content:space-between;
+  flex-shrink:0;
+}
+.appbar-left{display:flex;align-items:center;gap:10px}
+.appbar-left img{background:transparent !important;filter:drop-shadow(0 0 0 transparent);}
+.appbar-title{
+  font-size:16px;font-weight:800;color:#1c1c1e;
+  letter-spacing:-0.5px;white-space:nowrap;
+}
+.appbar-menu{
+  background:none;border:none;cursor:pointer;
+  display:flex;flex-direction:column;gap:5px;padding:4px;
+}
+.appbar-menu span{
+  display:block;width:22px;height:2px;
+  background:#1c1c1e;border-radius:2px;
+}
+
+/* ── 흰 카드 ── */
+.id-card{
+  background:#fff;
+  border-radius:18px;
+  margin:0 12px;
+  overflow:hidden;
+  box-shadow:0 4px 24px rgba(0,0,0,0.10),0 1px 4px rgba(0,0,0,0.06);
+  position:relative;
+  animation:slideUp .45s cubic-bezier(.16,1,.3,1) both;
+  flex-shrink:0;
+}
+@keyframes slideUp{
+  from{opacity:0;transform:translateY(30px)}
+  to{opacity:1;transform:translateY(0)}
+}
+
+/* 만료 오버레이 */
+.exp-overlay{
+  display:none;position:absolute;inset:0;
+  background:rgba(255,255,255,.93);
+  z-index:50;border-radius:18px;
+  flex-direction:column;align-items:center;justify-content:center;gap:12px;
+  backdrop-filter:blur(6px);
+}
+.exp-overlay.on{display:flex}
+.exp-icon{
+  width:60px;height:60px;border-radius:50%;
+  background:#fff0ee;border:2px solid #ffd0cc;
+  display:flex;align-items:center;justify-content:center;font-size:26px;
+  animation:wobble .5s ease;
+}
+@keyframes wobble{0%,100%{transform:rotate(0)}30%{transform:rotate(-8deg)}70%{transform:rotate(8deg)}}
+.exp-h{font-size:19px;font-weight:800;color:#1c1c1e}
+.exp-s{font-size:13px;color:#8e8e93}
+.exp-btn{
+  padding:12px 32px;background:#003478;color:#fff;border:none;
+  border-radius:99px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;
+  margin-top:4px;
+}
+
+/* ── 사진 블록 ── */
+.photo-block{
+  padding:20px 20px 0;
+  display:flex;justify-content:center;
+}
+.id-photo-wrap{
+  width:220px;height:268px;
+  background:#d4d8e0;
+  border-radius:6px;overflow:hidden;
+  box-shadow:0 2px 10px rgba(0,0,0,0.12);
+  cursor:pointer;position:relative;
+  flex-shrink:0;
+}
+.id-photo-wrap img{width:100%;height:100%;object-fit:cover;display:block}
+.id-photo-placeholder{
+  width:100%;height:100%;display:flex;
+  flex-direction:column;align-items:center;justify-content:center;
+  gap:8px;color:#8e96a8;
+}
+.id-photo-placeholder svg{opacity:.45}
+.id-photo-placeholder span{font-size:12px;font-weight:600}
+.photo-hover{
+  display:none;position:absolute;inset:0;
+  background:rgba(0,0,0,.36);backdrop-filter:blur(2px);
+  align-items:center;justify-content:center;
+  flex-direction:column;gap:5px;color:#fff;font-size:12px;font-weight:700;
+}
+.id-photo-wrap:hover .photo-hover{display:flex}
+
+/* ── 정보 + QR PASS 스타일 디자인 ── */
+.info-qr-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:22px 20px 18px;
+  gap:16px;
+}
+.info-left{flex:1;min-width:0;cursor:pointer}
+
+.disp-name{
+  font-size:28px;font-weight:900;color:#1c1c1e;
+  letter-spacing:-1px;line-height:1.05;
+  display:block;margin-bottom:8px;
+}
+.disp-birth{
+  font-size:16px;font-weight:700;color:#48484a;
+  display:block;margin-bottom:6px;letter-spacing:.2px;
+}
+.disp-addr{
+  font-size:12.5px;font-weight:500;color:#636366;
+  display:block;line-height:1.45;
+}
+
+/* ⭐️ QR PASS 프레임 스타일 디자인 */
+.qr-pass-container {
+flex-shrink: 0;
+width: 130px;
+background: #ffffff;
+border: none;
+border-radius: 12px;
+box-shadow: none;
+overflow: hidden;
+display: flex;
+flex-direction: column;
+align-items: center;
+}
+.qr-pass-header {
+  width: 100%;
+  background: #003478;
+  color: #ffffff;
+  font-size: 10px;
+  font-weight: 800;
+  text-align: center;
+  padding: 4px 0;
+  letter-spacing: 1px;
+}
+.qr-wrap{
+  width: 114px;
+  height: 114px;
+  margin: 6px;
+  background: #fff;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.qr-wrap canvas{display:block; width:100% !important; height:100% !important;}
+
+/* ── 타이머 ── */
+.timer-block{
+  padding:0 20px 6px;
+  border-top:1px solid #f0f0f5;
+  padding-top:14px;
+}
+.prog-track{
+  width:100%;height:5px;background:#e5e5ea;border-radius:99px;
+  overflow:hidden;margin-bottom:8px;
+}
+.prog-fill{
+  height:100%;border-radius:99px;
+  background:#003478;
+  transition:width 1s linear,background .4s;
+}
+.prog-fill.red{background:#ff3b30}
+
+.timer-row-text{
+  display:flex;align-items:center;justify-content:space-between;
+  margin-bottom:10px;
+}
+.timer-label{
+  font-size:13px;font-weight:600;color:#003478;
+  letter-spacing:.2px;
+}
+.timer-label.red{color:#ff3b30}
+.timer-sec{
+  font-size:14px;font-weight:700;color:#003478;
+}
+.timer-sec.red{color:#ff3b30}
+
+.qr-hint{
+  text-align:center;font-size:12px;color:#aeaeb2;
+  padding:4px 0 12px;letter-spacing:.2px;
+}
+
+/* ── 상세보기 버튼 ── */
+.detail-btn{
+  width:100%;padding:20px 0;
+  background:#003478;color:#fff;border:none;
+  font-size:17px;font-weight:700;
+  cursor:pointer;font-family:inherit;
+  letter-spacing:-.1px;
+  transition:background .15s;
+}
+.detail-btn:hover{background:#002454}
+
+/* ── 캡처방지 바 ── */
+.capture-bar{
+  background:rgba(30,34,50,.88);
+  color:rgba(255,255,255,.75);
+  font-size:13px;font-weight:500;
+  padding:13px 20px;
+  text-align:center;
+  letter-spacing:.3px;
+  flex-shrink:0;
+  margin-top:10px;
+  /* 스크롤 텍스트 */
+  overflow:hidden;white-space:nowrap;
+  position:relative;
+}
+.capture-bar-inner{
+  display:inline-block;
+  animation:marquee 12s linear infinite;
+}
+@keyframes marquee{
+  0%{transform:translateX(100vw)}
+  100%{transform:translateX(-100%)}
+}
+
+/* ── 편집 바텀시트 ── */
+.sheet-bg{
+  display:none;position:fixed;inset:0;
+  background:rgba(0,0,0,.38);z-index:300;
+  align-items:flex-end;justify-content:center;
+  backdrop-filter:blur(4px);
+}
+.sheet-bg.on{display:flex}
+.bottom-sheet{
+  background:#f2f2f7;border-radius:20px 20px 0 0;
+  width:100%;max-width:430px;
+  padding:8px 20px 50px;
+  animation:sheetUp .3s cubic-bezier(.16,1,.3,1);
+}
+@keyframes sheetUp{from{transform:translateY(100%)}to{transform:translateY(0)}}
+.sheet-handle{width:36px;height:4px;border-radius:99px;background:#c7c7cc;margin:10px auto 20px}
+.bottom-sheet h3{font-size:17px;font-weight:800;color:#1c1c1e;text-align:center;margin-bottom:20px}
+.bottom-sheet .fg label{color:#8e8e93}
+.bottom-sheet .fg input{background:#fff;color:#1c1c1e}
+.bottom-sheet .fg{margin-bottom:12px}
+.sheet-btns{display:flex;gap:10px;margin-top:20px}
+.sheet-cancel{
+  flex:1;padding:14px;background:#fff;color:#8e8e93;
+  border:1.5px solid #e0e0e0;border-radius:12px;
+  font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;
+}
+.sheet-save{
+  flex:2;padding:14px;background:#003478;color:#fff;border:none;
+  border-radius:12px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;
+  box-shadow:0 4px 14px rgba(0,52,120,.3);
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+<div class="page-form" id="pageForm">
+  <p class="form-title">주민등록증 확인증 생성</p>
+  <div class="form-card-wrap">
+    <div class="fg">
+      <label>증명사진</label>
+      <div class="photo-row">
+        <div class="form-thumb" id="formThumb" onclick="document.getElementById('fi1').click()">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+          사진
+        </div>
+        <label class="upload-label" for="fi1">📷 증명사진 업로드</label>
+        <input type="file" id="fi1" accept="image/*" style="display:none" onchange="onPhoto1(this)">
+      </div>
+    </div>
+    <div class="fg">
+      <label>성명 *</label>
+      <input type="text" id="fName" placeholder="홍길동">
+    </div>
+    <div class="fg">
+      <label>생년월일 *</label>
+      <input type="date" id="fBirth">
+    </div>
+    <div class="fg">
+      <label>주소</label>
+      <input type="text" id="fAddr" placeholder="주소입력">
+    </div>
+    <div class="fg">
+      <label>상세주소</label>
+      <input type="text" id="fAddr2" placeholder="(상세주소 입력)">
+    </div>
+    <button class="btn-make" onclick="makeCard()">확인증 생성</button>
+  </div>
+</div>
+
+<div class="page-card hidden" id="pageCard">
+
+  <div class="appbar">
+    <div class="appbar-left">
+      <img src="gov_logo_transparent.png"
+style="width:26px;height:26px;object-fit:contain;">
+      <span class="appbar-title">주민등록증 모바일 확인서비스</span>
+    </div>
+    <button class="appbar-menu" onclick="closeCard()">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+
+  <div class="id-card" id="idCard">
+
+    <div class="exp-overlay" id="expOverlay">
+      <div class="exp-icon">⏱</div>
+      <div class="exp-h">인증 시간 만료</div>
+      <div class="exp-s">확인 가능 시간이 초과되었습니다</div>
+      <button class="exp-btn" onclick="renewTimer()">다시 인증하기</button>
+    </div>
+
+    <div class="photo-block">
+      <div class="id-photo-wrap" id="idPhotoWrap" onclick="document.getElementById('fi2').click()">
+        <div class="id-photo-placeholder" id="idPhotoPlaceholder">
+          <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>
+          </svg>
+          <span>사진을 업로드하세요</span>
+        </div>
+        <div class="photo-hover">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+          사진 변경
+        </div>
+      </div>
+      <input type="file" id="fi2" accept="image/*" style="display:none" onchange="onPhoto2(this)">
+    </div>
+
+    <div class="info-qr-row">
+      <div class="info-left" onclick="openSheet()">
+        <span class="disp-name" id="dName">—</span>
+        <span class="disp-birth" id="dBirth">—</span>
+        <span class="disp-addr" id="dAddr"></span>
+      </div>
+      
+      <div class="qr-pass-container">
+        <div class="qr-wrap">
+          <canvas id="qrC" width="114" height="114"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <div class="timer-block">
+      <div class="prog-track">
+        <div class="prog-fill" id="progFill" style="width:100%"></div>
+      </div>
+      <div class="timer-row-text">
+        <span class="timer-label" id="timerLabel">남은시간</span>
+        <span class="timer-sec" id="timerSec">30초</span>
+      </div>
+      <div class="qr-hint">QR코드를 리더기에 스캔하세요</div>
+    </div>
+
+    <button class="detail-btn" onclick="openSheet()">상세정보 표시</button>
+
+  </div><div class="capture-bar">
+    <span class="capture-bar-inner">캡처방지 시스템이 작동 중입니다&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;캡처방지 시스템이 작동 중입니다&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;캡처방지 시스템이 작동 중입니다</span>
+  </div>
+
+</div><div class="sheet-bg" id="sheetBg" onclick="bgTap(event)">
+  <div class="bottom-sheet">
+    <div class="sheet-handle"></div>
+    <h3>정보 수정</h3>
+    <div class="fg"><label>성명</label><input type="text" id="sName" placeholder="홍길동"></div>
+    <div class="fg"><label>생년월일</label><input type="date" id="sBirth"></div>
+    <div class="fg"><label>주소</label><input type="text" id="sAddr"></div>
+    <div class="fg"><label>상세주소</label><input type="text" id="sAddr2"></div>
+    <div class="sheet-btns">
+      <button class="sheet-cancel" onclick="closeSheet()">취소</button>
+      <button class="sheet-save" onclick="saveSheet()">저장하기</button>
+    </div>
+  </div>
+</div>
+
+</div><script>
+var photoData=null, tid=null, remain=30, total=30, addrMain='', addrSub='';
+
+/* QR */
+function drawQR(text){
+  var c=document.getElementById('qrC'),sz=114,ctx=c.getContext('2d');
+  ctx.fillStyle='#fff';ctx.fillRect(0,0,sz,sz);
+  var img=new Image();img.crossOrigin='anonymous';
+  img.src='https://api.qrserver.com/v1/create-qr-code/?size='+sz+'x'+sz+'&data='+encodeURIComponent(text)+'&format=png&margin=4';
+  img.onload=function(){ctx.clearRect(0,0,sz,sz);ctx.drawImage(img,0,0,sz,sz)};
+  img.onerror=function(){fallbackQR(ctx,sz)};
+}
+function fallbackQR(ctx,sz){
+  var m=[[1,1,1,1,1,1,1,0,1,0,1,0,1,0,1,1,1,1,1,1,1],[1,0,0,0,0,0,1,0,0,1,0,1,0,0,1,0,0,0,0,0,1],[1,0,1,1,1,0,1,0,1,0,0,0,1,0,1,0,1,1,1,0,1],[1,0,1,1,1,0,1,0,0,1,1,0,0,0,1,0,1,1,1,0,1],[1,0,1,1,1,0,1,0,1,0,1,0,1,0,1,0,1,1,1,0,1],[1,0,0,0,0,0,1,0,0,0,0,1,0,0,1,0,0,0,0,0,1],[1,1,1,1,1,1,1,0,1,0,1,0,1,0,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0,1,1,0,1,1,0,0,0,0,0,0,0,0],[1,0,1,0,1,1,1,1,0,1,0,0,1,1,1,0,1,0,1,1,0],[0,1,0,0,1,0,0,0,1,0,1,0,0,0,1,1,0,0,1,0,1],[1,0,0,1,0,0,1,0,0,1,0,1,0,1,0,1,1,0,0,0,1],[0,1,1,0,0,1,0,1,1,0,0,1,1,0,1,0,1,0,0,1,0],[0,0,1,0,1,0,1,0,1,0,1,0,0,1,0,1,1,0,0,1,0],[0,0,0,0,0,0,0,0,1,0,0,1,0,0,1,0,0,1,0,1,0],[1,1,1,1,1,1,1,0,0,1,1,0,1,1,0,1,0,0,1,0,1],[1,0,0,0,0,0,1,0,1,0,0,0,0,0,1,1,0,1,0,1,0],[1,0,1,1,1,0,1,0,0,1,0,1,0,1,0,0,1,0,0,0,1],[1,0,1,1,1,0,1,0,1,0,1,0,1,0,1,0,0,1,1,0,0],[1,0,1,1,1,0,1,0,0,1,0,1,0,1,0,1,0,0,0,1,0],[1,0,0,0,0,0,1,0,1,0,1,1,0,0,1,0,1,0,1,0,1],[1,1,1,1,1,1,1,0,0,1,0,0,1,1,0,1,0,0,0,1,0]];
+  var cell=sz/21;
+  for(var r=0;r<21;r++)for(var cc=0;cc<21;cc++){ctx.fillStyle=m[r][cc]?'#000':'#fff';ctx.fillRect(cc*cell,r*cell,cell,cell);}
+}
+
+/* 사진 */
+function onPhoto1(el){
+  var f=el.files[0];if(!f)return;
+  var r=new FileReader();r.onload=function(e){
+    photoData=e.target.result;
+    var t=document.getElementById('formThumb');
+    t.innerHTML='<img src="'+photoData+'" style="width:100%;height:100%;object-fit:cover;border-radius:6px">';
+    renderPhoto();
+  };r.readAsDataURL(f);
+}
+function onPhoto2(el){
+  var f=el.files[0];if(!f)return;
+  var r=new FileReader();r.onload=function(e){photoData=e.target.result;renderPhoto();};r.readAsDataURL(f);
+}
+function transformBirth(bdStr) {
+  if(!bdStr) return '—';
+  var p = bdStr.split('-');
+  if(p.length !== 3) return bdStr;
+  // 주민등록증 모바일 확인서비스 특유의 포맷 (예: 1998.05.12.)
+  return p[0] + '.' + p[1] + '.' + p[2] + '.';
+}
+function renderPhoto(){
+  var wrap=document.getElementById('idPhotoWrap');
+  var ph=document.getElementById('idPhotoPlaceholder');if(ph)ph.style.display='none';
+  var old=wrap.querySelector('img');if(old)old.remove();
+  var img=document.createElement('img');img.src=photoData;
+  wrap.insertBefore(img,wrap.querySelector('.photo-hover'));
+}
+
+/* 카드 생성 */
+function makeCard(){
+  var nm=document.getElementById('fName').value.trim();
+  var bd=document.getElementById('fBirth').value;
+  if(!nm){alert('성명을 입력해주세요.');return;}
+  if(!bd){alert('생년월일을 입력해주세요.');return;}
+  addrMain=document.getElementById('fAddr').value.trim();
+  addrSub=document.getElementById('fAddr2').value.trim();
+  applyData(nm,bd,addrMain,addrSub);
+  document.getElementById('pageForm').classList.add('hidden');
+  document.getElementById('pageCard').classList.remove('hidden');
+  document.getElementById('expOverlay').classList.remove('on');
+  // 카드 재애니메이션
+  var c=document.getElementById('idCard');c.style.animation='none';c.offsetHeight;c.style.animation='slideUp .45s cubic-bezier(.16,1,.3,1) both';
+  startTimer();
+}
+
+function applyData(nm,bd,a,a2){
+  document.getElementById('dName').textContent=nm;
+  document.getElementById('dBirth').textContent=transformBirth(bd);
+  var full=a+(a2?' '+a2:'');
+  document.getElementById('dAddr').textContent=full;
+  renderPhoto();
+  drawQR(nm+'|'+bd+'|'+full);
+}
+
+/* 타이머 */
+function startTimer(){
+  if(tid)clearInterval(tid);
+  remain=total;tick();
+  tid=setInterval(function(){remain--;tick();if(remain<=0){clearInterval(tid);document.getElementById('expOverlay').classList.add('on');}},1000);
+}
+function renewTimer(){document.getElementById('expOverlay').classList.remove('on');startTimer();}
+function tick(){
+  var pct=(remain/total)*100;
+  var fill=document.getElementById('progFill');
+  var label=document.getElementById('timerLabel');
+  var sec=document.getElementById('timerSec');
+  var red=remain<=10;
+  fill.style.width=pct+'%';
+  fill.classList.toggle('red',red);
+  label.classList.toggle('red',red);
+  sec.classList.toggle('red',red);
+  label.textContent=red?'곧 만료':'남은시간';
+  sec.textContent=remain+'초';
+}
+
+/* 닫기 */
+function closeCard(){
+  if(tid)clearInterval(tid);
+  document.getElementById('pageCard').classList.add('hidden');
+  document.getElementById('pageForm').classList.remove('hidden');
+}
+
+/* 편집 시트 */
+function openSheet(){
+  document.getElementById('sName').value=document.getElementById('fName').value;
+  document.getElementById('sBirth').value=document.getElementById('fBirth').value;
+  document.getElementById('sAddr').value=addrMain;
+  document.getElementById('sAddr2').value=addrSub;
+  document.getElementById('sheetBg').classList.add('on');
+}
+function closeSheet(){document.getElementById('sheetBg').classList.remove('on');}
+function bgTap(e){if(e.target===document.getElementById('sheetBg'))closeSheet();}
+function saveSheet(){
+  var nm=document.getElementById('sName').value.trim();
+  var bd=document.getElementById('sBirth').value;
+  if(!nm){alert('성명을 입력해주세요.');return;}
+  if(!bd){alert('생년월일을 입력해주세요.');return;}
+  addrMain=document.getElementById('sAddr').value.trim();
+  addrSub=document.getElementById('sAddr2').value.trim();
+  document.getElementById('fName').value=nm;
+  document.getElementById('fBirth').value=bd;
+  document.getElementById('fAddr').value=addrMain;
+  document.getElementById('fAddr2').value=addrSub;
+  applyData(nm,bd,addrMain,addrSub);
+  closeSheet();
+}
+</script>
+</body>
+</html>
+
+<script>
+// Service Worker 등록
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.register('./service-worker.js')
+    .then(registration => {
+      console.log('Service Worker 등록 성공:', registration);
+    })
+    .catch(error => {
+      console.log('Service Worker 등록 실패:', error);
+    });
+}
+</script>
