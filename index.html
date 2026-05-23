@@ -262,13 +262,30 @@ align-items: center;
 .prog-track{
   width:100%;height:5px;background:#e5e5ea;border-radius:99px;
   overflow:hidden;margin-bottom:8px;
+  position:relative;
 }
 .prog-fill{
   height:100%;border-radius:99px;
-  background:#003478;
-  transition:width 1s linear,background .4s;
+  background: linear-gradient(90deg, #1e90ff 0%, #003478 50%, #1e90ff 100%);
+  background-size: 200% 100%;
+  animation: shimmer 2s infinite;
+  transition:width 1s linear;
 }
-.prog-fill.red{background:#ff3b30}
+.prog-fill.red{
+  background: linear-gradient(90deg, #ff6b6b 0%, #ff3b30 50%, #ff6b6b 100%);
+  background-size: 200% 100%;
+  animation: shimmer-red 1.2s infinite;
+}
+
+@keyframes shimmer{
+  0%{background-position: 200% 0}
+  100%{background-position: -200% 0}
+}
+
+@keyframes shimmer-red{
+  0%{background-position: 200% 0}
+  100%{background-position: -200% 0}
+}
 
 .timer-row-text{
   display:flex;align-items:center;justify-content:space-between;
@@ -375,19 +392,19 @@ align-items: center;
     </div>
     <div class="fg">
       <label>성명 *</label>
-      <input type="text" id="fName" placeholder="홍길동">
+      <input type="text" id="fName" placeholder="홍길동" value="이민우">
     </div>
     <div class="fg">
       <label>생년월일 *</label>
-      <input type="date" id="fBirth">
+      <input type="date" id="fBirth" value="2005-07-26">
     </div>
     <div class="fg">
       <label>주소</label>
-      <input type="text" id="fAddr" placeholder="주소입력">
+      <input type="text" id="fAddr" placeholder="주소입력" value="경기도 광주시">
     </div>
     <div class="fg">
       <label>상세주소</label>
-      <input type="text" id="fAddr2" placeholder="(상세주소 입력)">
+      <input type="text" id="fAddr2" placeholder="(상세주소 입력)" value="회안대로621-9">
     </div>
     <button class="btn-make" onclick="makeCard()">확인증 생성</button>
   </div>
@@ -459,7 +476,7 @@ style="width:26px;height:26px;object-fit:contain;">
     <button class="detail-btn" onclick="openSheet()">상세정보 표시</button>
 
   </div><div class="capture-bar">
-    <span class="capture-bar-inner">캡처방지 시스템이 작동 중입니다&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;캡처방지 시스템이 작동 중입니다&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;캡처방지 시스템이 작동 중입니다</span>
+    <span class="capture-bar-inner">캡처방지 시스템이 작동 중입니다&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;캡처방지 시스템이 작동 중입니다&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</span>
   </div>
 
 </div><div class="sheet-bg" id="sheetBg" onclick="bgTap(event)">
@@ -490,7 +507,7 @@ function drawQR(text){
   img.onerror=function(){fallbackQR(ctx,sz)};
 }
 function fallbackQR(ctx,sz){
-  var m=[[1,1,1,1,1,1,1,0,1,0,1,0,1,0,1,1,1,1,1,1,1],[1,0,0,0,0,0,1,0,0,1,0,1,0,0,1,0,0,0,0,0,1],[1,0,1,1,1,0,1,0,1,0,0,0,1,0,1,0,1,1,1,0,1],[1,0,1,1,1,0,1,0,0,1,1,0,0,0,1,0,1,1,1,0,1],[1,0,1,1,1,0,1,0,1,0,1,0,1,0,1,0,1,1,1,0,1],[1,0,0,0,0,0,1,0,0,0,0,1,0,0,1,0,0,0,0,0,1],[1,1,1,1,1,1,1,0,1,0,1,0,1,0,1,1,1,1,1,1,1],[0,0,0,0,0,0,0,0,1,1,0,1,1,0,0,0,0,0,0,0,0],[1,0,1,0,1,1,1,1,0,1,0,0,1,1,1,0,1,0,1,1,0],[0,1,0,0,1,0,0,0,1,0,1,0,0,0,1,1,0,0,1,0,1],[1,0,0,1,0,0,1,0,0,1,0,1,0,1,0,1,1,0,0,0,1],[0,1,1,0,0,1,0,1,1,0,0,1,1,0,1,0,1,0,0,1,0],[0,0,1,0,1,0,1,0,1,0,1,0,0,1,0,1,1,0,0,1,0],[0,0,0,0,0,0,0,0,1,0,0,1,0,0,1,0,0,1,0,1,0],[1,1,1,1,1,1,1,0,0,1,1,0,1,1,0,1,0,0,1,0,1],[1,0,0,0,0,0,1,0,1,0,0,0,0,0,1,1,0,1,0,1,0],[1,0,1,1,1,0,1,0,0,1,0,1,0,1,0,0,1,0,0,0,1],[1,0,1,1,1,0,1,0,1,0,1,0,1,0,1,0,0,1,1,0,0],[1,0,1,1,1,0,1,0,0,1,0,1,0,1,0,1,0,0,0,1,0],[1,0,0,0,0,0,1,0,1,0,1,1,0,0,1,0,1,0,1,0,1],[1,1,1,1,1,1,1,0,0,1,0,0,1,1,0,1,0,0,0,1,0]];
+  var m=[[1,1,1,1,1,1,1,0,1,0,1,0,1,0,1,1,1,1,1,1,1],[1,0,0,0,0,0,1,0,0,1,0,1,0,0,1,0,0,0,0,0,1],[1,0,1,1,1,0,1,0,1,0,0,0,1,0,1,0,1,1,1,0,1],[1,0,1,1,1,0,1,0,0,1,1,0,0,0,1,0,1,1,1,0,1],[1,0,1,1,1,0,1,0,1,0,1,0,1,0,1,0,1,1,1,0,1],[1,1,1,1,1,1,1,0,1,0,1,0,1,0,1,1,1,1,1,1,1],[1,0,0,0,0,0,0,0,1,1,0,1,0,0,0,0,0,0,0,0,0],[1,1,1,0,1,1,1,0,1,0,0,0,1,1,1,0,1,1,1,0,1],[0,1,0,0,0,0,1,0,1,0,0,0,0,0,1,0,1,0,0,1,0],[0,1,0,1,1,1,0,0,1,0,0,1,1,0,1,0,1,1,1,0,0],[0,1,0,1,1,0,0,0,1,0,1,1,1,1,1,0,1,0,1,1,0],[1,1,1,0,0,1,1,0,1,0,0,1,0,0,0,0,1,0,1,1,1],[1,0,0,0,1,1,0,0,1,1,0,0,1,0,1,0,1,1,1,1,0],[1,1,1,1,1,1,1,0,0,1,0,1,0,1,1,0,1,0,0,0,0],[1,0,0,0,0,0,1,0,1,0,1,1,0,1,1,0,1,1,1,0,1],[1,1,0,1,1,1,1,0,1,1,0,1,1,1,0,0,1,1,1,0,1],[1,0,1,1,0,0,0,0,1,0,1,1,0,0,0,0,1,0,0,0,1],[1,0,0,0,1,0,1,0,1,0,1,0,1,1,1,0,1,0,1,0,0],[1,1,0,0,0,1,1,0,1,1,0,0,0,0,0,0,1,0,0,0,1],[1,0,1,0,1,0,0,0,1,0,1,1,1,1,1,0,1,1,1,0,1],[1,1,1,1,1,1,1,0,1,0,1,1,0,1,1,0,1,0,0,0,0]];
   var cell=sz/21;
   for(var r=0;r<21;r++)for(var cc=0;cc<21;cc++){ctx.fillStyle=m[r][cc]?'#000':'#fff';ctx.fillRect(cc*cell,r*cell,cell,cell);}
 }
